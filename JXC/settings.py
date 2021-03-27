@@ -132,3 +132,5 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/1.11/howto/static-files/
 
 STATIC_URL = '/static/'
+DEBUG = False
+ALLOWED_HOSTS = ['121.196.109.32']
