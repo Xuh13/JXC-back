@@ -37,7 +37,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'user'
+    'user',
 ]
 
 MIDDLEWARE = [
@@ -133,4 +133,4 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 DEBUG = False
-ALLOWED_HOSTS = ['121.196.109.32']
+ALLOWED_HOSTS = ['127.0.0.1','121.196.109.32']

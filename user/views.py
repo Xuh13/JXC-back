@@ -31,6 +31,7 @@ def add_users(request):
     if request.method == "POST":
         users_names = request.POST.get("username")
         users_pass = request.POST.get("password")
+        name = request.POST.get("name")
         sql = "SELECT * FROM users WHERE username='" + users_names + "'"
         cursor.execute(sql)
         users = []
@@ -46,8 +47,8 @@ def add_users(request):
             # use pbkdf2_sha1
             sha1_encrypt = make_password(users_pass, None, 'pbkdf2_sha1')
             if users_names != '' and users_pass != '':
-                sql = "insert into users values(%s,%s,%s,%s)"
-                cursor.execute(sql, (0,users_names, sha256_encrypt, sha1_encrypt))
+                sql = "insert into users values(%s,%s,%s,%s,%s)"
+                cursor.execute(sql, (0,users_names, sha256_encrypt, sha1_encrypt, name))
                 conn.commit()
                 print(sha1_encrypt)
                 dic = {'state': 200, 'message': "Success"}
