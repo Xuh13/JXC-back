@@ -19,6 +19,7 @@ from user import views
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
     url(r'^test', views.test, name='test'),
+    url(r'^userlist', views.userlist, name='userlist'),
     url(r'^addUsers', views.add_users, name='addUsers'),
     url(r'^login', views.get_login, name='login'),
     url(r'^checktoken', views.checkToken, name='checktoken'),

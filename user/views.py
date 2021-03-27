@@ -14,7 +14,7 @@ from django.contrib.auth.models import User
 # Create your views here.
 
 
-conn = MySQLdb.connect('localhost', user="root", passwd="root", db="JXC")
+conn = MySQLdb.connect('localhost', user="root", passwd="", db="JXC")
 # Select database
 conn.select_db('JXC')
 # get cursor
@@ -26,7 +26,17 @@ def test(request):
     dic = {'state': 200, 'message': "Success", 'number': 222}
     return HttpResponse(json.dumps(dic, ensure_ascii=False))
 
-
+def userlist(request):
+    sql = "SELECT user_id,username,name FROM users "
+    cursor.execute(sql)
+    users = []
+    while 1:
+        res = cursor.fetchone()
+        if res is None:
+            break
+        users.append(res)
+    dic = {'state': 200, 'message': "Success",'userlist':users}
+    return HttpResponse(json.dumps(dic, ensure_ascii=False))
 def add_users(request):
     if request.method == "POST":
         users_names = request.POST.get("username")
