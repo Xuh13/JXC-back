@@ -14,7 +14,7 @@ from django.contrib.auth.models import User
 # Create your views here.
 
 
-conn = MySQLdb.connect('localhost', user="root", passwd="", db="JXC")
+conn = MySQLdb.connect('localhost', user="root", passwd="root", db="JXC")
 # Select database
 conn.select_db('JXC')
 # get cursor

@@ -15,12 +15,23 @@ Including another URLconf
 """
 from django.conf.urls import url
 from django.contrib import admin
-from user import views
+from user import views as userviews
+from stock import views as stockviews
+from record import views as recordviews
+from bill import views as billviews
+
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
-    url(r'^test', views.test, name='test'),
-    url(r'^userlist', views.userlist, name='userlist'),
-    url(r'^addUsers', views.add_users, name='addUsers'),
-    url(r'^login', views.get_login, name='login'),
-    url(r'^checktoken', views.checkToken, name='checktoken'),
+    url(r'^test', userviews.test, name='test'),
+    url(r'^userlist', userviews.userlist, name='userlist'),
+    url(r'^addUsers', userviews.add_users, name='addUsers'),
+    url(r'^login', userviews.get_login, name='login'),
+    url(r'^checktoken', userviews.checkToken, name='checktoken'),
+
+    url(r'^stocklist', stockviews.stocklist, name='stocklist'),
+
+    url(r'^recordlist', recordviews.recordlist, name='recordlist'),
+
+    url(r'^billlist', billviews.billlist, name='billlist'),
+
 ]
