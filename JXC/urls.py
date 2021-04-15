@@ -25,12 +25,18 @@ urlpatterns = [
     url(r'^test', userviews.test, name='test'),
     url(r'^userlist', userviews.userlist, name='userlist'),
     url(r'^addUsers', userviews.add_users, name='addUsers'),
+    url(r'^deleteUser', userviews.deleteUser, name='deleteUser'),
     url(r'^login', userviews.get_login, name='login'),
     url(r'^checktoken', userviews.checkToken, name='checktoken'),
 
     url(r'^stocklist', stockviews.stocklist, name='stocklist'),
+    url(r'^getUnit', stockviews.getunit, name='getUnit'),
+    url(r'^warehousing', stockviews.warehousing, name='warehousing'),
+    url(r'^setWarning', stockviews.setWarning, name='setWarning'),
+    url(r'^outOfStock', stockviews.outofstock, name='outOfStock'),
 
     url(r'^recordlist', recordviews.recordlist, name='recordlist'),
+    url(r'^stockHisRecord', recordviews.stockHisRecord, name='stockHisRecord'),
 
     url(r'^billlist', billviews.billlist, name='billlist'),
 

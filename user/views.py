@@ -1,6 +1,7 @@
 # Create your views here.
 import json
 import time
+import jwt
 import MySQLdb
 from django.contrib.auth.hashers import make_password, check_password
 from django.http import HttpResponse
@@ -14,7 +15,7 @@ from django.contrib.auth.models import User
 # Create your views here.
 
 
-conn = MySQLdb.connect('localhost', user="root", passwd="root", db="JXC")
+conn = MySQLdb.connect('localhost', user="root", passwd="", db="JXC", charset='utf8')
 # Select database
 conn.select_db('JXC')
 # get cursor
@@ -23,11 +24,16 @@ cursor = conn.cursor()
 
 @csrf_exempt
 def test(request):
+    print(123)
+    print(request)
+    requestData = json.loads(request.body)
+    print(requestData)
     dic = {'state': 200, 'message': "Success", 'number': 222}
     return HttpResponse(json.dumps(dic, ensure_ascii=False))
 
+
 def userlist(request):
-    sql = "SELECT user_id,username,name FROM users "
+    sql = "SELECT user_id,username,name,roles FROM users "
     cursor.execute(sql)
     users = []
     while 1:
@@ -35,14 +41,18 @@ def userlist(request):
         if res is None:
             break
         users.append(res)
-    dic = {'state': 200, 'message': "Success",'userlist':users}
+    dic = {'state': 200, 'message': "Success", 'userlist': users}
     return HttpResponse(json.dumps(dic, ensure_ascii=False))
+
+
 def add_users(request):
     if request.method == "POST":
-        users_names = request.POST.get("username")
-        users_pass = request.POST.get("password")
-        name = request.POST.get("name")
-        sql = "SELECT * FROM users WHERE username='" + users_names + "'"
+        requestData = json.loads(request.body)
+        users_names = requestData.get("username")
+        users_pass = requestData.get("password")
+        name = requestData.get("name")
+        print(users_names)
+        sql = "SELECT * FROM users WHERE username=\"" + users_names + "\""
         cursor.execute(sql)
         users = []
         while 1:
@@ -56,9 +66,9 @@ def add_users(request):
             sha256_encrypt = make_password(users_pass, None, 'pbkdf2_sha256')
             # use pbkdf2_sha1
             sha1_encrypt = make_password(users_pass, None, 'pbkdf2_sha1')
-            if users_names != '' and users_pass != '':
-                sql = "insert into users values(%s,%s,%s,%s,%s)"
-                cursor.execute(sql, (0,users_names, sha256_encrypt, sha1_encrypt, name))
+            if len(users_names) > 0 and len(users_pass) > 0:
+                sql = "insert into users values(%s,%s,%s,%s,%s,%s)"
+                cursor.execute(sql, (0, users_names, sha256_encrypt, sha1_encrypt, name,1))
                 conn.commit()
                 print(sha1_encrypt)
                 dic = {'state': 200, 'message': "Success"}
@@ -68,13 +78,22 @@ def add_users(request):
             return HttpResponse(json.dumps(dic, ensure_ascii=False))
 
 
+def deleteUser(request):
+    requestData = json.loads(request.body)
+    user_id = requestData.get("user_id")
+    sql = "delete from users where user_id ="+user_id
+    cursor.execute(sql)
+    dic = {'state': 200, 'message': "Success delete"}
+    return HttpResponse(json.dumps(dic, ensure_ascii=False))
+
+
 def get_login(request):
-    if request.method == "GET":
-        return render(request, 'login.html')
-    elif request.method == "POST":
-        users_names = request.POST.get("username")
-        users_pass = request.POST.get("password")
-        sql = "SELECT * FROM users WHERE username='"+users_names+"'"
+    if request.method == "POST":
+        requestData = json.loads(request.body)
+        print(requestData)
+        users_names = requestData.get("username")
+        users_pass = requestData.get("password")
+        sql = "SELECT * FROM users WHERE username='" + users_names + "'"
         cursor.execute(sql)
         users = []
         while 1:
@@ -82,47 +101,59 @@ def get_login(request):
             if res is None:
                 break
             users.append(res)
+        print(users)
         if len(users) == 1:
             ip = request.META.get("REMOTE_ADDR")
             print(ip)
-            c_time = time.ctime()
-            token = generate_token(ip, users_names, c_time)
-            users_token = token
+            token = generate_token(ip, users_names)
             sha256_decode = check_password(users_pass, users[0][2])
             sha1_decode = check_password(users_pass, users[0][3])
-            if sha256_decode == True and sha1_decode == True:
-
-                dic = {'state': 200, 'message': "Success"}
+            if sha256_decode and sha1_decode:
+                conn.commit()
+                dic = {'state': 200, 'message': "Success", "token": token,"roles":users[0][5]}
                 res = HttpResponse(json.dumps(dic, ensure_ascii=False))
-                res.set_cookie('token',value=token)
-                res.set_cookie('c_time',value=c_time)
-                res.set_cookie('username',value=users_names)
                 return res
             else:
-                dic = {'state': 200, 'message': "Failed",}
+                dic = {'state': 200, 'message': "Failed", }
                 res = HttpResponse(json.dumps(dic, ensure_ascii=False))
                 return res
         else:
             dic = {'state': 200, 'message': "Failed", }
             res = HttpResponse(json.dumps(dic, ensure_ascii=False))
             return res
-# create token,ip+username+current time+static string
-def generate_token(ip, users_names,c_time):
-    r = users_names
-    print(ip + c_time + r+'laodiggn')
-    sha256_encrypt = make_password((ip + c_time + r+'laodiggn'), None, 'pbkdf2_sha256')
-    return sha256_encrypt
-# check token
+
+
+def generate_token(ip, users_names):
+    headers = {
+        "alg": "HS256",
+        "typ": "JWT"
+    }
+    salt = "asgfdgerher"
+    exp = int(time.time() + 604800)
+    payload = {
+        "username": users_names,
+        "exp": exp
+    }
+    print(payload)
+    t = jwt.encode(payload=payload, key=salt, algorithm='HS256', headers=headers)
+    print(t)
+    return t
+
+
 def checkToken(request):
     token = request.COOKIES.get('token')
-    c_time = request.COOKIES.get('c_time')
-    users_names = request.COOKIES.get('username')
-    ip = request.META.get("REMOTE_ADDR")
-    tokencheck = check_password( ip+c_time+users_names+"laodiggn",token)
-    if tokencheck == True:
-        dic = {'state': 200, 'message': "Success"}
+    print(token)
+    salt = "asgfdgerher"
+    try:
+        info = jwt.decode(token, salt, algorithms='HS256')
+    except jwt.ExpiredSignatureError:
+        print('token out date')
+        print(info)
+        dic = {'state': 300, 'message': "timeout"}
         return HttpResponse(json.dumps(dic, ensure_ascii=False))
-    else:
+    except jwt.InvalidTokenError:
+        print('token error')
         dic = {'state': 300, 'message': "Failed"}
         return HttpResponse(json.dumps(dic, ensure_ascii=False))
-
+    dic = {'state': 200, 'message': "Success"}
+    return HttpResponse(json.dumps(dic, ensure_ascii=False))
