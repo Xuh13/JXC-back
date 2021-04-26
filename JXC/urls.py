@@ -37,6 +37,8 @@ urlpatterns = [
 
     url(r'^recordlist', recordviews.recordlist, name='recordlist'),
     url(r'^stockHisRecord', recordviews.stockHisRecord, name='stockHisRecord'),
+    url(r'^monthRecord', recordviews.monthRecord, name='monthRecord'),
+    url(r'^totalRecord', recordviews.totalRecord, name='totalRecord'),
 
     url(r'^billlist', billviews.billlist, name='billlist'),
 
