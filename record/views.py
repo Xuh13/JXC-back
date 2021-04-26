@@ -45,13 +45,25 @@ def stockHisRecord(request):
         res = cursor.fetchone()
         if res is None:
             break
-        recordsIn.append(res)
+        recordsIn.append({
+            'record_id':str(res[0]),
+            'price':str(res[1]),
+            'total':str(res[2]),
+            'type':str(res[3]),
+            'stock_name':res[4]
+        })
     cursor.execute(sqlOut, stock_id)
     while 1:
         res = cursor.fetchone()
         if res is None:
             break
-        recordsOut.append(res)
+        recordsOut.append({
+            'record_id':str(res[0]),
+            'price':str(res[1]),
+            'total':str(res[2]),
+            'type':str(res[3]),
+            'stock_name':res[4]
+        })
     dic = {'state': 200, 'message': "Success", 'InList': recordsIn, 'OutList': recordsOut}
     return HttpResponse(json.dumps(dic, ensure_ascii=False))
 
@@ -103,4 +115,36 @@ def totalRecord(request):
             'total': str(res[2])
         })
     dic = {'state': 200, 'message': "Success", 'totalList': records}
+    return HttpResponse(json.dumps(dic, ensure_ascii=False))
+
+
+def stockPrice(request):
+    requestData = json.loads(request.body)
+    recordsIn = []
+    recordsOut = []
+    sqlIn = "select s.stock_id,s.stock_name,year(bill_time),month(bill_time),avg(price) from record r join bill b on r.record_id=b.record_id join stock s on r.stock_id=s.stock_id where r.type=0 and s.stock_name=\""+requestData['stock_name']+"\" group by year(b.bill_time),month(b.bill_time)"
+    sqlOut = "select s.stock_id,s.stock_name,year(bill_time),month(bill_time),avg(price) from record r join bill b on r.record_id=b.record_id join stock s on r.stock_id=s.stock_id where r.type=1 and s.stock_name=\""+requestData['stock_name']+"\" group by year(b.bill_time),month(b.bill_time)"
+    cursor.execute(sqlIn)
+    while 1:
+        res = cursor.fetchone()
+        if res is None:
+            break
+        recordsIn.append({
+            'stock_id':str(res[0]),
+            'stock_name':res[1],
+            'date': str(res[2]) + '-' + str(res[3]),
+            'price': str(res[4])
+        })
+    cursor.execute(sqlOut)
+    while 1:
+        res = cursor.fetchone()
+        if res is None:
+            break
+        recordsOut.append({
+            'stock_id':str(res[0]),
+            'stock_name':res[1],
+            'date': str(res[2]) + '-' + str(res[3]),
+            'price': str(res[4])
+        })
+    dic = {'state': 200, 'message': "Success", 'InList': recordsIn, 'OutList': recordsOut}
     return HttpResponse(json.dumps(dic, ensure_ascii=False))

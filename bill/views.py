@@ -42,3 +42,21 @@ def billlist(request):
     dic = {'state': 200, 'message': "Success",'billlist':bills}
     print(dic)
     return HttpResponse(json.dumps(dic, cls=DateTimeEncoder))
+
+
+def turnoverStatistics(request):
+    # requestData = json.loads(request.body)
+    turnoverList = []
+    turnover = "select year(bill_time),month(bill_time),sum(total_amount) from record natural join bill where type=1 group by year(bill_time),month(bill_time)"
+    cursor.execute(turnover)
+    while 1:
+        res = cursor.fetchone()
+        if res is None:
+            break
+        turnoverList.append({
+            'date': str(res[0]) + '-' + str(res[1]),
+            'turnover': str(res[2])
+        })
+    dic = {'state': 200, 'message': "Success", 'turnoverList': turnoverList}
+    return HttpResponse(json.dumps(dic, ensure_ascii=False))
+
